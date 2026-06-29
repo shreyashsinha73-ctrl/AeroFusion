@@ -455,6 +455,48 @@ class SatelliteFusionPipeline:
             'Ozone_Sensitivity': sensitivity_da
         })
 
+    def bundle_to_dataframe(self, hcho_da: xr.DataArray, no2_da: xr.DataArray, fire_da: xr.DataArray) -> pd.DataFrame:
+        """
+        Bundles aligned xarray DataArrays (FRP, HCHO, NO2, FNR) into a single Pandas DataFrame.
+        """
+        print("\n[DIAGNOSTIC] Bundling aligned matrices into Pandas DataFrame...")
+        
+        # Ensure coordinate names are standard and capitalized
+        hcho = hcho_da.rename('HCHO')
+        no2 = no2_da.rename('NO2')
+        frp = fire_da.rename('FRP')
+        
+        # Calculate FNR
+        with np.errstate(divide='ignore', invalid='ignore'):
+            fnr_vals = hcho.values / no2.values
+            
+        fnr = xr.DataArray(
+            fnr_vals,
+            coords=hcho.coords,
+            dims=hcho.dims,
+            name='FNR'
+        )
+        
+        # Merge datasets
+        ds = xr.Dataset({
+            'HCHO': hcho,
+            'NO2': no2,
+            'FRP': frp,
+            'FNR': fnr
+        })
+        
+        # Convert to DataFrame and reset index
+        df = ds.to_dataframe().reset_index()
+        
+        # Rename coordinate columns to capitalized
+        df = df.rename(columns={
+            'latitude': 'Latitude',
+            'longitude': 'Longitude'
+        })
+        print(f"  - Bundled DataFrame size: {len(df)} rows.")
+        return df
+
+
 
 def generate_synthetic_data(data_dir: str = "data"):
     """
