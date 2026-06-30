@@ -57,7 +57,7 @@ tau_lifetime = st.sidebar.slider(
 )
 
 st.sidebar.info(
-    "These sliders dynamically compute the Smearing Length Scale (Ls ≈ U / τ) "
+    "These sliders dynamically compute the Smearing Length Scale (Ls = U * τ) "
     "in real-time, inversely shifting the TROPOMI HCHO column matrices back "
     "to the true MODIS/VIIRS fire coordinates."
 )
@@ -125,7 +125,7 @@ hcho_corrected = pipeline.apply_transport_correction(
     u_wind=u_wind,
     v_wind=v_wind,
     lifetime_hours=tau_lifetime,
-    formula_type='prompt'
+    formula_type='physical'
 )
 
 # Apply equivalent ocean mask to raw xarray datasets for metric consistency

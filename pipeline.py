@@ -295,6 +295,8 @@ class SatelliteFusionPipeline:
             lat_shift_deg = shift_y_m / lat_conversion
             lon_shift_deg = shift_x_m / lon_conversion
         elif formula_type == 'prompt':
+            # WARNING: This mode (Ls = u / tau) is a non-physical / simplified comparative variant
+            # and is dimensionally inconsistent. It is kept solely for backward compatibility.
             shift_x_raw = u_wind / lifetime_hours
             shift_y_raw = v_wind / lifetime_hours
             

@@ -88,12 +88,13 @@ Where:
 ### B. Meteorological Wind Transport Shift (Objective 2)
 Volatile Organic Compounds (VOCs) undergo wind transport during their chemical oxidation lifetime ($\tau$). To trace Observed HCHO columns back to their pyrogenic sources, we calculate the Smearing Length Scale ($\vec{L}_s$):
 
-$$\vec{L}_s = \frac{\vec{u}}{\tau}$$
+$$\vec{L}_s = \vec{u} \cdot \tau$$
 
 Where:
-- $\vec{u} = (U, V)$ is the boundary layer wind velocity vectors ($m/s$) at 850 hPa.
-- $\tau$ is the VOC precursor chemical lifetime ($s$) before decaying into HCHO.
-- The inverse coordinate roll shift is computed using grid cell distances:
+- $\vec{u} = (U, V)$ is the boundary layer wind velocity vector ($m/s$) at 850 hPa.
+- $\tau$ is the VOC precursor chemical lifetime ($s$).
+- $\vec{L}_s = (U_s, V_s)$ represents the displacement distance vector ($meters$).
+- The inverse coordinate shift is computed using grid cell distances:
 
 $$\Delta y_{\text{deg}} = \frac{V_s}{R_{\text{lat}}}$$
 
