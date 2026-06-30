@@ -23,8 +23,133 @@ st.set_page_config(
     page_icon="🇮🇳"
 )
 
+# Inject custom CSS for polished light slate/gray theme
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+
+/* Main app container background */
+.stApp {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Header container styling */
+.main .block-container {
+    padding-top: 2rem !important;
+}
+
+/* Custom separator line below title area */
+.header-divider {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+}
+
+/* Small eyebrow headers */
+.eyebrow-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #005f73;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+    background-color: #e9ecef !important;
+    border-right: 1px solid #dee2e6 !important;
+}
+
+/* Text elements color */
+h1, h2, h3, h4, h5, h6, p, span, label, div {
+    color: #212529;
+}
+
+/* Mute description text */
+.stMarkdown p, .stMarkdown span {
+    color: #495057;
+}
+
+/* Restyle metric cards */
+div[data-testid="stMetric"] {
+    background-color: #e9ecef !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    padding: 15px 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+div[data-testid="stMetricLabel"] > div {
+    font-family: 'Inter', sans-serif !important;
+    color: #495057 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stMetricValue"] > div {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+}
+
+/* Accent colors for specific metrics based on column indexes */
+div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(1) div[data-testid="stMetricValue"] > div {
+    color: #ae2012 !important; /* Accent 2 / Fire red */
+}
+div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(2) div[data-testid="stMetricValue"] > div {
+    color: #005f73 !important; /* Accent 1 / Teal */
+}
+div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(3) div[data-testid="stMetricValue"] > div {
+    color: #2a9d8f !important; /* Success green */
+}
+
+/* Custom BaseWeb Slider styling */
+div[data-baseweb="slider"] {
+    margin-bottom: 1.5rem !important;
+}
+div[data-testid="stSlider"] label {
+    font-family: 'Inter', sans-serif !important;
+    color: #212529 !important;
+    font-size: 0.9rem !important;
+}
+
+/* Slider thumb color */
+div[role="slider"] {
+    background-color: #005f73 !important;
+    border: 2px solid #f8f9fa !important;
+}
+
+/* Slider active track color */
+div[data-baseweb="slider"] > div > div {
+    background-color: #005f73 !important;
+}
+
+/* Restyle Streamlit info boxes */
+div[data-testid="stNotification"] {
+    background-color: #e9ecef !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    padding: 1rem !important;
+}
+div[data-testid="stNotification"] p {
+    color: #495057 !important;
+    font-size: 0.85rem !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 st.title("🇮🇳 Multi-Sensor Satellite Data Fusion Dashboard")
+st.markdown('<div class="eyebrow-label">OBJECTIVE 2 · ATMOSPHERIC TRANSPORT ANALYTICS</div>', unsafe_allow_html=True)
 st.subheader("Objective 2: HCHO Hotspot Identification & Wind Plume Transport Correction")
+st.markdown('<div class="header-divider"></div>', unsafe_allow_html=True)
 
 # 2. Sidebar Interactive Controls
 st.sidebar.header("🕹️ Boundary Layer Transport Controls")
@@ -252,6 +377,7 @@ with col_right:
 
 
 # 5. Full-Width Pyrogenic Analytics & Trends Section (Side-by-Side Subplots)
+st.markdown('<div class="eyebrow-label">ANALYTICS · TEMPORAL & REGRESSION TRENDS</div>', unsafe_allow_html=True)
 st.subheader("📈 Pyrogenic Analytics & Trends")
 
 # Generate mock daily time-series dataset spanning the last 30 days using Pandas
@@ -300,9 +426,11 @@ with col_trend_left:
         title_text="Fires vs. HCHO Column Density (30-Day Trend)",
         height=400,
         margin=dict(l=20, r=20, t=50, b=20),
-        xaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)'),
+        xaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        template="plotly_white"
+        template="plotly_white",
+        paper_bgcolor='#e9ecef',
+        plot_bgcolor='#e9ecef'
     )
     fig_trends.update_yaxes(title_text="<b>Active Fire Counts</b>", color="#ae2012", secondary_y=False)
     fig_trends.update_yaxes(title_text="<b>HCHO Column Density</b>", color="#005f73", secondary_y=True)
@@ -359,14 +487,17 @@ with col_trend_right:
     fig_corr.update_layout(
         height=400,
         margin=dict(l=20, r=20, t=50, b=20),
-        xaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
+        xaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
+        yaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
+        paper_bgcolor='#e9ecef',
+        plot_bgcolor='#e9ecef'
     )
     st.plotly_chart(fig_corr, use_container_width=True)
 
 
 # 6. Live Diagnostic Metrics Footer
 st.markdown("---")
+st.markdown('<div class="eyebrow-label">METRICS · REAL-TIME QUANTITATIVE ATTRIBUTION</div>', unsafe_allow_html=True)
 st.markdown("### 📊 Live Pipeline Metrics")
 
 # Calculate metrics dynamically using 2D arrays for optimization
