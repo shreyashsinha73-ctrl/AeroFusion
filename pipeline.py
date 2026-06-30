@@ -271,7 +271,8 @@ class SatelliteFusionPipeline:
     def apply_transport_correction(self, data_da: xr.DataArray, 
                                    u_wind: float, v_wind: float, 
                                    lifetime_hours: float = 2.0, 
-                                   formula_type: str = 'physical') -> xr.DataArray:
+                                   formula_type: str = 'physical',
+                                   dispersion: bool = True) -> xr.DataArray:
         """
         Applies dynamic meteorological transport correction to HCHO to reverse transport smear.
         Shifts observed columns inversely back to their pyrogenic fire sources.
@@ -331,6 +332,27 @@ class SatelliteFusionPipeline:
         )
         
         shifted_vals[shifted_valid < 0.9] = np.nan
+        
+        # Apply physical spatial dispersion effect using a Gaussian filter
+        # Sigma along X/Y scales dynamically with zonal/meridional wind speed components
+        sigma_y = abs(v_wind) * 0.2
+        sigma_x = abs(u_wind) * 0.2
+        
+        if dispersion and (sigma_x > 0.0 or sigma_y > 0.0):
+            print(f"  - Applying spatial dispersion: sigma_y (lat) = {sigma_y:.3f}, sigma_x (lon) = {sigma_x:.3f}")
+            # Identify NaNs before blurring to avoid NaN leakage
+            nan_mask_before_blur = np.isnan(shifted_vals)
+            
+            # Temporarily fill NaNs with 0.0 to prevent NaN propagation during Gaussian filtering
+            clean_shifted = np.where(nan_mask_before_blur, 0.0, shifted_vals)
+            
+            # Perform Gaussian filter blur along both grid axes
+            blurred_vals = scipy.ndimage.gaussian_filter(
+                clean_shifted, sigma=(sigma_y, sigma_x), mode='constant', cval=0.0
+            )
+            
+            # Restore NaN mask to preserve QA and boundary conditions
+            shifted_vals = np.where(nan_mask_before_blur, np.nan, blurred_vals)
         
         corrected_da = xr.DataArray(
             shifted_vals,

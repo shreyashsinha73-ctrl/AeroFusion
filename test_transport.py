@@ -46,7 +46,8 @@ def test_smearing_shift():
         u_wind=u_wind,
         v_wind=v_wind,
         lifetime_hours=tau,
-        formula_type='physical'
+        formula_type='physical',
+        dispersion=False
     )
     
     # Mathematically expected shift in degrees longitude:

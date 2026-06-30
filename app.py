@@ -1,12 +1,13 @@
 """
 Interactive Streamlit Dashboard for Multi-Sensor Satellite Data Fusion Pipeline.
 
-This app provides an interactive user interface using Plotly Express heatmaps to display
+This app provides an interactive user interface using Plotly Express Mapbox maps to display
 binned fire FRP data and wind-aligned chemical plume columns over India.
 """
 
 import os
 import numpy as np
+import pandas as pd
 import streamlit as st
 import plotly.express as px
 
@@ -52,6 +53,21 @@ tau_lifetime = st.sidebar.slider(
     step=0.5,
     help="Precursor chemical lifetime in hours."
 )
+
+# Sidebar view domain selector
+view_domain = st.sidebar.selectbox(
+    label="🔍 Select View Domain",
+    options=["National Overview (All India)", "Indo-Gangetic Plain (Hotspot Close-up)"],
+    help="Select the geographical focus and zoom level for the Mapbox charts."
+)
+
+# Set map zoom and center dynamically based on selectbox option
+if view_domain == "National Overview (All India)":
+    map_center = dict(lat=22.0, lon=78.0)
+    map_zoom = 4
+else:
+    map_center = dict(lat=22.0, lon=80.0)
+    map_zoom = 7
 
 st.sidebar.info(
     "These sliders dynamically compute the Smearing Length Scale (Ls ≈ U / τ) "
@@ -125,46 +141,95 @@ hcho_corrected = pipeline.apply_transport_correction(
     formula_type='prompt'
 )
 
+# Bundle all aligned spatial layers into a single clean Pandas DataFrame
+df_aligned = pipeline.bundle_to_dataframe(
+    hcho_da=hcho_corrected,
+    no2_da=no2_regridded,
+    fire_da=fire_frp_grid
+)
+
+# Labels map for Plotly charts
+labels = {
+    'Latitude': 'Latitude',
+    'Longitude': 'Longitude',
+    'FRP': 'Fire Radiative Power (FRP)',
+    'HCHO': 'Tropospheric HCHO VCD',
+    'NO2': 'Tropospheric NO2 VCD',
+    'FNR': 'Chemical Diagnostic Ratio (FNR)'
+}
+
+# Formatting mappings for hover popup metrics
+hover_data = {
+    'Latitude': True,
+    'Longitude': True,
+    'FRP': ':.1f',
+    'HCHO': ':.3e',
+    'NO2': ':.3e',
+    'FNR': ':.2f'
+}
+
 # 4. Two-Column Visualization Layout
 col_left, col_right = st.columns(2)
 
 with col_left:
-    st.markdown("### 🗺️ Fire Radiative Power (FRP Matrix)")
+    st.markdown("### 🗺️ Fire Radiative Power (FRP Map)")
     
-    # Build Plotly heatmap for binned fires
-    fig_fire = px.imshow(
-        fire_frp_grid.values,
-        x=fire_frp_grid.longitude.values,
-        y=fire_frp_grid.latitude.values,
+    # Filter DataFrame to show only active fire grid cells (FRP > 0) to optimize rendering speed
+    df_fire = df_aligned[df_aligned['FRP'] > 0.0]
+    
+    # Build Mapbox scatter plot for active fires
+    fig_fire = px.scatter_mapbox(
+        df_fire,
+        lat='Latitude',
+        lon='Longitude',
+        color='FRP',
+        size='FRP',
         color_continuous_scale='YlOrRd',
-        origin='lower',
-        labels={'color': 'FRP (MW)', 'x': 'Longitude', 'y': 'Latitude'}
+        zoom=map_zoom,
+        center=map_center,
+        mapbox_style='carto-positron',
+        hover_name='FRP',
+        hover_data=hover_data,
+        labels=labels,
+        size_max=18
     )
     fig_fire.update_layout(
         height=550,
-        margin=dict(l=20, r=20, t=20, b=20),
-        xaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
+        margin=dict(l=0, r=0, t=30, b=0),
+        coloraxis_colorbar=dict(title="FRP (MW)")
     )
     st.plotly_chart(fig_fire, use_container_width=True)
 
 with col_right:
-    st.markdown("### 🧪 Corrected Tropospheric HCHO Plume")
+    st.markdown("### 🧪 Corrected Tropospheric HCHO Plume Map")
     
-    # Build Plotly heatmap for wind-corrected HCHO columns
-    fig_hcho = px.imshow(
-        hcho_corrected.values,
-        x=hcho_corrected.longitude.values,
-        y=hcho_corrected.latitude.values,
+    # Filter HCHO cells > 0 and downsample slightly (by taking every 2nd point)
+    # to maintain high-performance, real-time recalculations on the Mapbox layer.
+    df_hcho = df_aligned[df_aligned['HCHO'] > 0.0]
+    df_hcho_plot = df_hcho.iloc[::2]
+    
+    # Build Mapbox scatter plot for HCHO grid
+    fig_hcho = px.scatter_mapbox(
+        df_hcho_plot,
+        lat='Latitude',
+        lon='Longitude',
+        color='HCHO',
         color_continuous_scale='Viridis',
-        origin='lower',
-        labels={'color': 'HCHO Column', 'x': 'Longitude', 'y': 'Latitude'}
+        zoom=map_zoom,
+        center=map_center,
+        mapbox_style='carto-positron',
+        hover_name='HCHO',
+        hover_data=hover_data,
+        labels=labels
+    )
+    # Set continuous grid overlay marker appearance
+    fig_hcho.update_traces(
+        marker=dict(size=6, opacity=0.7)
     )
     fig_hcho.update_layout(
         height=550,
-        margin=dict(l=20, r=20, t=20, b=20),
-        xaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)'),
-        yaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)')
+        margin=dict(l=0, r=0, t=30, b=0),
+        coloraxis_colorbar=dict(title="molec/cm²")
     )
     st.plotly_chart(fig_hcho, use_container_width=True)
 
