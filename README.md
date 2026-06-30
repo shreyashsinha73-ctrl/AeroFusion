@@ -23,7 +23,7 @@ The project coordinates remote sensing observations with ground-truth networks t
 |    +---------------------------------------------------+    | |    [Background Cleansing Subtraction]  |
 |    |      Spatial 2D Feature Extraction (CNN Layer)    |    | |                    |                |
 |    +---------------------------------------------------+    | |     [Wind Coordinate Roll Shift]    |
-|                              |                              | |       (Ls = Wind / tau formula)     |
+|                              |                              | |       (Ls = Wind * tau formula)     |
 |                              v                              | |                    |                |
 |    +---------------------------------------------------+    | |      [FNR Regime Classification]    |
 |    |      Temporal Sequence Prediction (LSTM Layer)    |    | |         (VOC- vs. NOx-Limited)      |
