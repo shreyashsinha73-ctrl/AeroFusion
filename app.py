@@ -128,12 +128,26 @@ hcho_corrected = pipeline.apply_transport_correction(
     formula_type='prompt'
 )
 
+# Apply equivalent ocean mask to raw xarray datasets for metric consistency
+ocean_mask = ~(((hcho_corrected.longitude < 72.5) & (hcho_corrected.latitude < 22.0)) | 
+               ((hcho_corrected.longitude > 85.0) & (hcho_corrected.latitude < 20.0)))
+hcho_corrected = hcho_corrected.where(ocean_mask, np.nan)
+fire_frp_grid = fire_frp_grid.where(ocean_mask, np.nan)
+
 # Bundle all aligned spatial layers into a single clean Pandas DataFrame
 df_aligned = pipeline.bundle_to_dataframe(
     hcho_da=hcho_corrected,
     no2_da=no2_regridded,
     fire_da=fire_frp_grid
 )
+
+# --- GEOGRAPHIC OCEAN MASK (approximate rectangular cutoffs, not a true coastline) ---
+arabian_sea_mask = (df_aligned['Longitude'] < 72.5) & (df_aligned['Latitude'] < 22.0)
+df_aligned.loc[arabian_sea_mask, ['HCHO', 'NO2', 'FRP']] = np.nan
+
+bay_of_bengal_mask = (df_aligned['Longitude'] > 85.0) & (df_aligned['Latitude'] < 20.0)
+df_aligned.loc[bay_of_bengal_mask, ['HCHO', 'NO2', 'FRP']] = np.nan
+# ------------------------------
 
 # Labels map for Plotly charts
 labels = {
@@ -199,9 +213,9 @@ with col_left:
 with col_right:
     st.markdown("### 🧪 Corrected Tropospheric HCHO Plume Map")
     
-    # Filter HCHO cells > 0 and downsample slightly (by taking every 2nd point)
+    # Filter HCHO cells above threshold and downsample slightly (by taking every 2nd point)
     # to maintain high-performance, real-time recalculations on the Mapbox layer.
-    df_hcho = df_aligned[df_aligned['HCHO'] > 0.0]
+    df_hcho = df_aligned[df_aligned['HCHO'] > 0.3e15]
     df_hcho_plot = df_hcho.iloc[::2].copy()
     
     # Generate clean professional index labels to avoid memory address leaks in the tooltip header
