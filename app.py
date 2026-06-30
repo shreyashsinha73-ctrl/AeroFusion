@@ -302,7 +302,7 @@ with col_trend_right:
             x='Active Fire Detections',
             y='HCHO Column Density',
             trendline="ols",
-            title="Fires vs. HCHO Enhancement Correlation (OLS Fit)",
+            title="Fires vs. HCHO Enhancement Correlation",
             labels={
                 'Active Fire Detections': 'Active Fire Detections (counts)',
                 'HCHO Column Density': 'HCHO Column Density (molec/cm²)'
@@ -316,7 +316,7 @@ with col_trend_right:
             df_trends,
             x='Active Fire Detections',
             y='HCHO Column Density',
-            title="Fires vs. HCHO Enhancement Correlation (OLS numpy Fallback)",
+            title="Fires vs. HCHO Enhancement Correlation",
             labels={
                 'Active Fire Detections': 'Active Fire Detections (counts)',
                 'HCHO Column Density': 'HCHO Column Density (molec/cm²)'
