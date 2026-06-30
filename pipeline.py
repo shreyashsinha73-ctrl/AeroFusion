@@ -634,7 +634,7 @@ def generate_synthetic_data(data_dir: str = "data"):
     out_of_bounds = [
         {'latitude': 4.5, 'longitude': 80.0, 'frp': 250.0},
         {'latitude': 41.2, 'longitude': 80.0, 'frp': 180.0},
-        {'latitude': 20.0, 'longitude': 62.1, 'frp': 90.0},
+        {'latitude': 19.5, 'longitude': 75.5, 'frp': 90.0},  # Relocated to Maharashtra, India
         {'latitude': 20.0, 'longitude': 99.8, 'frp': 110.0}
     ]
     fire_events.extend(out_of_bounds)
