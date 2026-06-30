@@ -538,11 +538,19 @@ def generate_synthetic_data(data_dir: str = "data"):
     np.random.seed(100)
     hcho_bg = np.random.normal(loc=4.2e15, scale=0.08e15, size=(n_lat, n_lon))
     
-    # Fire at (22.0, 80.0) wind-drifted to (22.13, 80.35)
-    plume_y, plume_x = 22.13, 80.35
-    hcho_plume = 1.1e16 * np.exp(-((lat_mesh - plume_y)**2 / 0.35**2 + (lon_mesh - plume_x)**2 / 0.45**2))
+    # Hotspot Cluster 1: Central India
+    plume_y1, plume_x1 = 22.13, 80.35
+    hcho_plume1 = 1.1e16 * np.exp(-((lat_mesh - plume_y1)**2 / 0.35**2 + (lon_mesh - plume_x1)**2 / 0.45**2))
     
-    hcho_data = hcho_bg + hcho_plume
+    # Hotspot Cluster 2: Punjab / Indo-Gangetic Plain (IGP)
+    plume_y2, plume_x2 = 30.63, 75.85
+    hcho_plume2 = 1.3e16 * np.exp(-((lat_mesh - plume_y2)**2 / 0.30**2 + (lon_mesh - plume_x2)**2 / 0.40**2))
+    
+    # Hotspot Cluster 3: Northeast India Forest Zones
+    plume_y3, plume_x3 = 25.63, 93.35
+    hcho_plume3 = 9.5e15 * np.exp(-((lat_mesh - plume_y3)**2 / 0.35**2 + (lon_mesh - plume_x3)**2 / 0.35**2))
+    
+    hcho_data = hcho_bg + hcho_plume1 + hcho_plume2 + hcho_plume3
     
     qa_vals = np.random.uniform(0.6, 1.0, size=(n_lat, n_lon))
     cloud_fracs = np.random.uniform(0.05, 0.25, size=(n_lat, n_lon))
@@ -578,9 +586,11 @@ def generate_synthetic_data(data_dir: str = "data"):
     for c_lat, c_lon, val, scale in cities:
         city_hotspots += val * np.exp(-((lat_mesh - c_lat)**2 / scale**2 + (lon_mesh - c_lon)**2 / scale**2))
         
-    fire_no2_plume = 3.0e15 * np.exp(-((lat_mesh - plume_y)**2 / 0.35**2 + (lon_mesh - plume_x)**2 / 0.45**2))
+    fire_no2_plume1 = 3.0e15 * np.exp(-((lat_mesh - plume_y1)**2 / 0.35**2 + (lon_mesh - plume_x1)**2 / 0.45**2))
+    fire_no2_plume2 = 3.5e15 * np.exp(-((lat_mesh - plume_y2)**2 / 0.30**2 + (lon_mesh - plume_x2)**2 / 0.40**2))
+    fire_no2_plume3 = 2.5e15 * np.exp(-((lat_mesh - plume_y3)**2 / 0.35**2 + (lon_mesh - plume_x3)**2 / 0.35**2))
     
-    no2_data = no2_bg + city_hotspots + fire_no2_plume
+    no2_data = no2_bg + city_hotspots + fire_no2_plume1 + fire_no2_plume2 + fire_no2_plume3
     
     no2_ds = xr.Dataset(
         data_vars={
@@ -600,10 +610,25 @@ def generate_synthetic_data(data_dir: str = "data"):
     # 3. Active Fire Coordinates CSV
     fire_events = []
     
+    # Cluster 1 fires (Central India)
     for _ in range(75):
         f_lat = np.random.normal(loc=22.0, scale=0.18)
         f_lon = np.random.normal(loc=80.0, scale=0.18)
         f_frp = np.random.exponential(scale=120.0) + 15.0
+        fire_events.append({'latitude': f_lat, 'longitude': f_lon, 'frp': f_frp})
+        
+    # Cluster 2 fires (Punjab / IGP)
+    for _ in range(60):
+        f_lat = np.random.normal(loc=30.5, scale=0.15)
+        f_lon = np.random.normal(loc=75.5, scale=0.15)
+        f_frp = np.random.exponential(scale=100.0) + 20.0
+        fire_events.append({'latitude': f_lat, 'longitude': f_lon, 'frp': f_frp})
+        
+    # Cluster 3 fires (Northeast India)
+    for _ in range(50):
+        f_lat = np.random.normal(loc=25.5, scale=0.18)
+        f_lon = np.random.normal(loc=93.0, scale=0.18)
+        f_frp = np.random.exponential(scale=80.0) + 15.0
         fire_events.append({'latitude': f_lat, 'longitude': f_lon, 'frp': f_frp})
         
     out_of_bounds = [

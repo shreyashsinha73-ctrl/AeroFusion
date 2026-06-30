@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 # Import backend class
 from pipeline import AtmosphericPipeline
@@ -53,21 +55,6 @@ tau_lifetime = st.sidebar.slider(
     step=0.5,
     help="Precursor chemical lifetime in hours."
 )
-
-# Sidebar view domain selector
-view_domain = st.sidebar.selectbox(
-    label="🔍 Select View Domain",
-    options=["National Overview (All India)", "Indo-Gangetic Plain (Hotspot Close-up)"],
-    help="Select the geographical focus and zoom level for the Mapbox charts."
-)
-
-# Set map zoom and center dynamically based on selectbox option
-if view_domain == "National Overview (All India)":
-    map_center = dict(lat=22.0, lon=78.0)
-    map_zoom = 4
-else:
-    map_center = dict(lat=22.0, lon=80.0)
-    map_zoom = 7
 
 st.sidebar.info(
     "These sliders dynamically compute the Smearing Length Scale (Ls ≈ U / τ) "
@@ -168,7 +155,7 @@ hover_data = {
     'FNR': ':.2f'
 }
 
-# 4. Two-Column Visualization Layout
+# 4. Two-Column Visualization Layout (Synchronized Maps of India)
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -185,17 +172,21 @@ with col_left:
         color='FRP',
         size='FRP',
         color_continuous_scale='YlOrRd',
-        zoom=map_zoom,
-        center=map_center,
         mapbox_style='carto-positron',
         hover_name='FRP',
         hover_data=hover_data,
         labels=labels,
         size_max=18
     )
+    # Hardcode Mapbox view configuration to center perfectly over Central India land
     fig_fire.update_layout(
         height=550,
         margin=dict(l=0, r=0, t=30, b=0),
+        mapbox=dict(
+            center=dict(lat=22.0, lon=78.0),
+            zoom=4,
+            style="carto-positron"
+        ),
         coloraxis_colorbar=dict(title="FRP (MW)")
     )
     st.plotly_chart(fig_fire, use_container_width=True)
@@ -215,8 +206,6 @@ with col_right:
         lon='Longitude',
         color='HCHO',
         color_continuous_scale='Viridis',
-        zoom=map_zoom,
-        center=map_center,
         mapbox_style='carto-positron',
         hover_name='HCHO',
         hover_data=hover_data,
@@ -226,14 +215,83 @@ with col_right:
     fig_hcho.update_traces(
         marker=dict(size=6, opacity=0.7)
     )
+    # Hardcode Mapbox view configuration to synchronize perfectly with the FRP map
     fig_hcho.update_layout(
         height=550,
         margin=dict(l=0, r=0, t=30, b=0),
+        mapbox=dict(
+            center=dict(lat=22.0, lon=78.0),
+            zoom=4,
+            style="carto-positron"
+        ),
         coloraxis_colorbar=dict(title="molec/cm²")
     )
     st.plotly_chart(fig_hcho, use_container_width=True)
 
-# 5. Live Diagnostic Metrics Footer
+
+# 5. Full-Width Pyrogenic Analytics & Trends Section
+st.subheader("📈 Pyrogenic Analytics & Trends")
+
+# Generate mock daily time-series dataset spanning the last 30 days using Pandas
+np.random.seed(42)
+dates = pd.date_range(end=pd.Timestamp.now(), periods=30, freq='D')
+days = np.arange(30)
+
+# Simulate active fire counts peaking during biomass burning windows (around day 15)
+fire_trend = 15.0 + 80.0 * np.exp(-((days - 15.0) / 4.0)**2) + np.random.normal(0, 5, 30)
+fire_trend = np.clip(fire_trend, 0, None)
+
+# Simulate lagging tropospheric HCHO column density peaking slightly later (around day 17) due to chemical build-up/transport
+hcho_trend = 4.0e15 + 8.5e15 * np.exp(-((days - 17.0) / 5.0)**2) + np.random.normal(0, 0.25e15, 30)
+
+df_trends = pd.DataFrame({
+    'Date': dates,
+    'Active Fire Detections': fire_trend,
+    'HCHO Column Density': hcho_trend
+})
+
+# Create dual-axis line chart using subplots
+fig_trends = make_subplots(specs=[[{"secondary_y": True}]])
+
+# Add Active Fires trace (Left Axis)
+fig_trends.add_trace(
+    go.Scatter(
+        x=df_trends['Date'],
+        y=df_trends['Active Fire Detections'],
+        name="Active Fire Detections (MODIS/VIIRS)",
+        line=dict(color="#ae2012", width=3)
+    ),
+    secondary_y=False,
+)
+
+# Add HCHO Density trace (Right Axis)
+fig_trends.add_trace(
+    go.Scatter(
+        x=df_trends['Date'],
+        y=df_trends['HCHO Column Density'],
+        name="HCHO Column Density (TROPOMI)",
+        line=dict(color="#005f73", width=3)
+    ),
+    secondary_y=True,
+)
+
+# Update layout configurations
+fig_trends.update_layout(
+    title_text="MODIS/VIIRS Active Fires vs. TROPOMI HCHO Column Density (30-Day Trend)",
+    height=400,
+    margin=dict(l=20, r=20, t=50, b=20),
+    xaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.2)'),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    template="plotly_white"
+)
+
+fig_trends.update_yaxes(title_text="<b>Active Fire Counts</b> (detections)", color="#ae2012", secondary_y=False)
+fig_trends.update_yaxes(title_text="<b>HCHO Column Density</b> (molec/cm²)", color="#005f73", secondary_y=True)
+
+st.plotly_chart(fig_trends, use_container_width=True)
+
+
+# 6. Live Diagnostic Metrics Footer
 st.markdown("---")
 st.markdown("### 📊 Live Pipeline Metrics")
 
