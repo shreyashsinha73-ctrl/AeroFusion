@@ -542,8 +542,8 @@ def generate_synthetic_data(data_dir: str = "data"):
     plume_y1, plume_x1 = 22.13, 80.35
     hcho_plume1 = 1.1e16 * np.exp(-((lat_mesh - plume_y1)**2 / 0.35**2 + (lon_mesh - plume_x1)**2 / 0.45**2))
     
-    # Hotspot Cluster 2: Punjab / Indo-Gangetic Plain (IGP)
-    plume_y2, plume_x2 = 30.63, 75.85
+    # Hotspot Cluster 2: Punjab / Indo-Gangetic Plain (IGP) (Moved from Pakistan border area to crop belt)
+    plume_y2, plume_x2 = 30.33, 75.75  # Drifted from source (30.2, 75.5)
     hcho_plume2 = 1.3e16 * np.exp(-((lat_mesh - plume_y2)**2 / 0.30**2 + (lon_mesh - plume_x2)**2 / 0.40**2))
     
     # Hotspot Cluster 3: Northeast India Forest Zones
@@ -617,9 +617,9 @@ def generate_synthetic_data(data_dir: str = "data"):
         f_frp = np.random.exponential(scale=120.0) + 15.0
         fire_events.append({'latitude': f_lat, 'longitude': f_lon, 'frp': f_frp})
         
-    # Cluster 2 fires (Punjab / IGP)
+    # Cluster 2 fires (Punjab / IGP - centered at 30.2N, 75.5E inside India)
     for _ in range(60):
-        f_lat = np.random.normal(loc=30.5, scale=0.15)
+        f_lat = np.random.normal(loc=30.2, scale=0.15)
         f_lon = np.random.normal(loc=75.5, scale=0.15)
         f_frp = np.random.exponential(scale=100.0) + 20.0
         fire_events.append({'latitude': f_lat, 'longitude': f_lon, 'frp': f_frp})
