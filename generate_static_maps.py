@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+from scipy.ndimage import gaussian_filter
 
 # --- CONFIGURATION ---
 DATA_PATH = "data/historical_satellite_data.csv"
@@ -166,10 +167,14 @@ def query_data(year: int, season: str, variable: str, data_path: str) -> pd.Data
     df = duckdb.query(query).to_df()
     
     if not df.empty:
-        # Apply standard geographic ocean masking cutoffs
-        arabian_sea_mask = (df['longitude'] < 72.5) & (df['latitude'] < 22.0)
-        bay_of_bengal_mask = (df['longitude'] > 85.0) & (df['latitude'] < 20.0)
-        df = df[~(arabian_sea_mask | bay_of_bengal_mask)].copy()
+        # --- OCEAN PIXEL MASKING (Option B with extra cutoffs) ---
+        ocean_mask = (
+            ((df['longitude'] < 72.5) & (df['latitude'] < 22.0)) |
+            ((df['longitude'] > 85.0) & (df['latitude'] < 20.0)) |
+            (df['latitude'] < 7.5) |
+            (df['longitude'] < 68.5)
+        )
+        df = df[~ocean_mask].copy()
         
     return df
 
@@ -238,7 +243,6 @@ def generate_hcho_combined_map(year: int, data_path: str, states_gdf, output_dir
                     im_burn = im
             except Exception as e:
                 print(f"[WARNING] Could not render pcolormesh for {year}: {e}. Falling back to scatter.")
-                # Fallback to high density scatter
                 im = ax.scatter(df_s['longitude'], df_s['latitude'], c=df_s['value'], cmap='YlOrRd', vmin=HCHO_VMIN, vmax=HCHO_VMAX, s=12, alpha=0.85, edgecolors='none')
                 if item["title"].startswith("Burning"):
                     im_burn = im
@@ -265,7 +269,8 @@ def generate_hcho_combined_map(year: int, data_path: str, states_gdf, output_dir
 
 def generate_frp_single_map(year: int, season: str, data_path: str, states_gdf, output_dir: str = "static_maps") -> str:
     """
-    Generates a high-density log-scale FRP gridded pixel map.
+    Generates a high-density log-scale FRP gridded pixel map at 0.05° resolution
+    with Gaussian smoothing.
     Saves to output_dir/{year}_frp_{season}.png
     """
     try:
@@ -303,35 +308,43 @@ def generate_frp_single_map(year: int, season: str, data_path: str, states_gdf, 
     for spine in ax.spines.values():
         spine.set_visible(False)
         
-    # Plot data with LogNorm
-    try:
-        df_agg = df.groupby(['latitude', 'longitude'], as_index=False)['value'].mean()
-        grid_df = df_agg.pivot(index='latitude', columns='longitude', values='value')
-        X, Y = np.meshgrid(grid_df.columns.values, grid_df.index.values)
-        im = ax.pcolormesh(
-            X, Y, grid_df.values,
-            cmap='YlOrRd',
-            norm=LogNorm(vmin=FRP_VMIN, vmax=FRP_VMAX),
-            shading='auto',
-            alpha=0.9
-        )
-    except Exception as e:
-        print(f"[WARNING] Could not render FRP pcolormesh: {e}. Falling back to scatter.")
-        # Log scatter fallback
-        im = ax.scatter(
-            df['longitude'], df['latitude'],
-            c=df['value'],
-            cmap='YlOrRd',
-            norm=LogNorm(vmin=FRP_VMIN, vmax=FRP_VMAX),
-            s=12,
-            alpha=0.9,
-            edgecolors='none'
-        )
+    # --- 0.05° RESOLUTION GRIDDING & GAUSSIAN SMOOTHING ---
+    # Create grid bins covering the India extent
+    lon_bins = np.arange(67.0, 98.05, 0.05)
+    lat_bins = np.arange(6.0, 38.05, 0.05)
+    
+    # Bin FRP values (weights=FRP values)
+    H, xedges, yedges = np.histogram2d(
+        df['longitude'], df['latitude'],
+        bins=[lon_bins, lat_bins],
+        weights=df['value']
+    )
+    
+    # Transpose to match rows=lat, cols=lon shape
+    values_grid = H.T
+    
+    # Apply Gaussian smoothing (sigma=0.6)
+    smoothed = gaussian_filter(values_grid, sigma=0.6)
+    
+    # Preserve original 0s as NaNs (for transparency in LogNorm) and only keep smoothed values > 0
+    final_grid = np.where(values_grid > 0, smoothed, np.nan)
+    
+    # Meshgrid of bin boundaries
+    X, Y = np.meshgrid(xedges, yedges)
+    
+    # Plot using pcolormesh for gridded layout
+    im = ax.pcolormesh(
+        X, Y, final_grid,
+        cmap='YlOrRd',
+        norm=LogNorm(vmin=FRP_VMIN, vmax=FRP_VMAX),
+        shading='auto',
+        alpha=0.9
+    )
         
     # Title & annotations
     season_title = "Baseline Season (Jan-Mar)" if season.lower() == 'baseline' else "Burning Season (Oct-Nov)"
     ax.set_title(f"Fire Intensity - India ({year} {season_title})", fontsize=12, fontweight='bold', pad=12)
-    ax.text(82.5, 5.0, "Source: MODIS/VIIRS via NASA FIRMS | Spatial Resolution: 0.1° grid", ha='center', fontsize=8, style='italic', color='#555555')
+    ax.text(82.5, 5.0, "Source: MODIS/VIIRS via NASA FIRMS | Spatial Resolution: 0.05° grid + Gaussian Smooth", ha='center', fontsize=8, style='italic', color='#555555')
     
     # Add LogNorm colorbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.035, pad=0.04)
