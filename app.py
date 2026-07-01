@@ -23,128 +23,325 @@ st.set_page_config(
     page_icon="🇮🇳"
 )
 
-# Inject custom CSS for polished light slate/gray theme
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+# Convert background image to base64 for reliable local rendering
+import base64
+import os
 
-/* Main app container background */
-.stApp {
-    background-color: #f8f9fa !important;
-    color: #212529 !important;
-    font-family: 'Inter', sans-serif !important;
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
+bg_base64 = get_base64_image("bg_2.jpg")
+
+css_styles = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* Apply Inter as base font for all elements */
+* {
+    font-family: 'Inter', sans-serif;
 }
 
-/* Header container styling */
+/* Page background and main containers */
+.stApp, .main .block-container {
+    background-color: #0B0E14 !important;
+    color: #E8EAED !important;
+}
+
+header[data-testid="stHeader"] {
+    background: #0B0E14 !important;
+    border-bottom: 1px solid #232938 !important;
+}
+
+#root {
+    background: #0B0E14 !important;
+}
+
+[data-testid="stToolbarActions"] {
+    display: none !important;
+}
+
+/* Fallback selectors in case the above doesn't catch it */
+.stDeployButton {
+    display: none !important;
+}
+
+button[kind="deployButton"] {
+    display: none !important;
+}
+
+/* Target the sidebar toggle button */
+[data-testid="collapsedControl"] {
+    background: rgba(0, 184, 169, 0.15) !important;
+    border: 1px solid rgba(0, 184, 169, 0.4) !important;
+    border-radius: 8px !important;
+    color: #00B8A9 !important;
+    padding: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="collapsedControl"]:hover {
+    background: rgba(0, 184, 169, 0.3) !important;
+    border-color: #00B8A9 !important;
+}
+
+/* Also style the open/close arrow inside the sidebar itself */
+[data-testid="stSidebarCollapseButton"] button {
+    background: rgba(0, 184, 169, 0.15) !important;
+    border: 1px solid rgba(0, 184, 169, 0.4) !important;
+    border-radius: 8px !important;
+    color: #00B8A9 !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button:hover {
+    background: rgba(0, 184, 169, 0.3) !important;
+    border-color: #00B8A9 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] svg {
+    fill: #00B8A9 !important;
+    stroke: #00B8A9 !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+button[data-testid="baseButton-headerNoPadding"] {
+    color: #FFD700 !important;
+    background: rgba(255, 215, 0, 0.1) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 8px !important;
+}
+
+button[data-testid="baseButton-headerNoPadding"] svg {
+    fill: #FFD700 !important;
+    stroke: #FFD700 !important;
+}
+
+button[data-testid="baseButton-headerNoPadding"]:hover {
+    background: rgba(255, 215, 0, 0.25) !important;
+    border-color: #FFD700 !important;
+}
+
+/* Fix top bar/toolbar background to match the space image overlay */
+[data-testid="stToolbar"] {
+    background: transparent !important;
+}
+
+[data-testid="stHeader"] {
+    background: transparent !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Remove any top padding/margin creating the black strip */
+.stApp > header {
+    background: transparent !important;
+}
+
+section[data-testid="stSidebarContent"] {
+    background: transparent !important;
+}
+
+/* Force the very top of the app to be transparent so the 
+   space background image shows through everywhere */
+.stApp {
+    background-color: transparent !important;
+}
+
+#root > div:first-child {
+    background: transparent !important;
+}
+
+/* Header container padding */
 .main .block-container {
     padding-top: 2rem !important;
 }
 
 /* Custom separator line below title area */
 .header-divider {
-    border-bottom: 2px solid #dee2e6;
+    border: none !important;
+    border-top: 1px solid #232938 !important;
     margin-bottom: 2rem;
     margin-top: 1rem;
 }
 
 /* Small eyebrow headers */
 .eyebrow-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #005f73;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.1em !important;
+    color: #00B8A9 !important;
+    text-transform: uppercase !important;
     margin-bottom: 0.5rem;
     margin-top: 1.5rem;
 }
 
+/* Subheader (h3) styling */
+h3, [data-testid="stHeader"] h3, .stMarkdown h3 {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    color: #E8EAED !important;
+    letter-spacing: -0.02em !important;
+}
+
 /* Sidebar styling */
 section[data-testid="stSidebar"] {
-    background-color: #e9ecef !important;
-    border-right: 1px solid #dee2e6 !important;
+    background-color: #0B0E14 !important;
+    border-right: 1px solid #232938 !important;
 }
 
-/* Text elements color */
-h1, h2, h3, h4, h5, h6, p, span, label, div {
-    color: #212529;
+/* Sidebar labels and text */
+[data-testid="stSidebar"] label, [data-testid="stSidebar"] .stMarkdown p {
+    color: #8B93A7 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
 }
 
-/* Mute description text */
-.stMarkdown p, .stMarkdown span {
-    color: #495057;
+/* Sidebar slider active track and handle */
+[data-testid="stSlider"] [role="slider"] {
+    background-color: #00B8A9 !important;
+    border: 2px solid #E8EAED !important;
+}
+[data-testid="stSlider"] div[data-baseweb="slider"] > div > div {
+    background-color: #00B8A9 !important;
 }
 
 /* Restyle metric cards */
 div[data-testid="stMetric"] {
-    background-color: #e9ecef !important;
-    border: 1px solid #dee2e6 !important;
-    border-radius: 6px !important;
-    padding: 15px 20px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    background-color: #131720 !important;
+    border: 1px solid #232938 !important;
+    border-radius: 20px !important;
+    padding: 24px 28px !important;
+    box-shadow: 0 1px 2px 0 rgba(5,26,36,0.1),
+                0 4px 4px 0 rgba(5,26,36,0.09),
+                0 9px 6px 0 rgba(5,26,36,0.05),
+                0 17px 7px 0 rgba(5,26,36,0.01) !important;
 }
 
-div[data-testid="stMetricLabel"] > div {
+div[data-testid="stMetricLabel"] > div, div[data-testid="stMetricLabel"] span {
     font-family: 'Inter', sans-serif !important;
-    color: #495057 !important;
-    font-size: 0.75rem !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
-    font-weight: 700 !important;
+    color: #8B93A7 !important;
 }
 
-div[data-testid="stMetricValue"] > div {
+div[data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {
     font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 1.8rem !important;
-    font-weight: 700 !important;
+    font-size: 28px !important;
+    font-weight: 500 !important;
+    color: #00B8A9 !important;
 }
 
-/* Accent colors for specific metrics based on column indexes */
+/* Accent colors for specific metric values based on column indexes */
 div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(1) div[data-testid="stMetricValue"] > div {
-    color: #ae2012 !important; /* Accent 2 / Fire red */
+    color: #E63946 !important; /* Fire red */
 }
 div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(2) div[data-testid="stMetricValue"] > div {
-    color: #005f73 !important; /* Accent 1 / Teal */
+    color: #00B8A9 !important; /* Accent Teal */
 }
 div[data-testid="stHorizontalBlock"] div[data-testid="column"]:nth-of-type(3) div[data-testid="stMetricValue"] > div {
-    color: #2a9d8f !important; /* Success green */
+    color: #4ADE80 !important; /* Success Green */
 }
 
-/* Custom BaseWeb Slider styling */
-div[data-baseweb="slider"] {
-    margin-bottom: 1.5rem !important;
-}
-div[data-testid="stSlider"] label {
+/* Button style overrides */
+.stButton > button {
+    background-color: #051A24 !important;
+    color: #F6FCFF !important;
+    border: none !important;
+    border-radius: 999px !important;
+    padding: 12px 28px !important;
     font-family: 'Inter', sans-serif !important;
-    color: #212529 !important;
-    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 2px 0 rgba(5,26,36,0.1),
+                0 4px 4px 0 rgba(5,26,36,0.09),
+                0 9px 6px 0 rgba(5,26,36,0.05),
+                inset 0 2px 8px 0 rgba(255,255,255,0.08) !important;
+    transition: opacity 0.2s ease !important;
 }
-
-/* Slider thumb color */
-div[role="slider"] {
-    background-color: #005f73 !important;
-    border: 2px solid #f8f9fa !important;
-}
-
-/* Slider active track color */
-div[data-baseweb="slider"] > div > div {
-    background-color: #005f73 !important;
+.stButton > button:hover {
+    opacity: 0.85 !important;
+    color: #F6FCFF !important;
 }
 
 /* Restyle Streamlit info boxes */
-div[data-testid="stNotification"] {
-    background-color: #e9ecef !important;
-    border: 1px solid #dee2e6 !important;
-    border-radius: 6px !important;
-    padding: 1rem !important;
+div[data-testid="stNotification"], div[data-testid="stInfo"] {
+    background-color: #131720 !important;
+    border: 1px solid #232938 !important;
+    border-radius: 12px !important;
+    color: #8B93A7 !important;
 }
-div[data-testid="stNotification"] p {
-    color: #495057 !important;
-    font-size: 0.85rem !important;
+div[data-testid="stNotification"] p, div[data-testid="stInfo"] p {
+    color: #8B93A7 !important;
 }
 
-</style>
-""", unsafe_allow_html=True)
+/* Selectbox (year selector) styling */
+div[data-testid="stSelectbox"] > div {
+    background-color: #131720 !important;
+    border: 1px solid #232938 !important;
+    border-radius: 12px !important;
+    color: #E8EAED !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* Dividers */
+hr {
+    border: none !important;
+    border-top: 1px solid #232938 !important;
+    margin: 24px 0 !important;
+}
+"""
+
+if bg_base64 is not None:
+    css_styles += f"""
+.stApp {{
+    background-image: url("data:image/jpeg;base64,{bg_base64}") !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+}}
+
+/* Subtle dark overlay to preserve readability while letting the 
+   space/Earth image show through slightly */
+.stApp::before {{
+    content: '' !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(11, 14, 20, 0.82) !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    background-size: cover !important;
+}}
+
+/* Ensure all content sits above the overlay */
+.stApp > * {{
+    position: relative !important;
+    z-index: 1 !important;
+}}
+
+header[data-testid="stHeader"] {{
+    background: rgba(11, 14, 20, 0.82) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border-bottom: 1px solid #232938 !important;
+}}
+
+section[data-testid="stSidebar"] {{
+    background: rgba(11, 14, 20, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-right: 1px solid rgba(35, 41, 56, 0.8) !important;
+}}
+"""
+
+st.markdown(f"<style>{css_styles}</style>", unsafe_allow_html=True)
 
 st.title("🇮🇳 Multi-Sensor Satellite Data Fusion Dashboard")
 st.markdown('<div class="eyebrow-label">OBJECTIVE 2 · ATMOSPHERIC TRANSPORT ANALYTICS</div>', unsafe_allow_html=True)
@@ -434,11 +631,11 @@ if selected_year == "2026 (Live Interactive Pipeline)":
             title_text="Fires vs. HCHO Column Density (30-Day Trend)",
             height=400,
             margin=dict(l=20, r=20, t=50, b=20),
-            xaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
+            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            template="plotly_white",
-            paper_bgcolor='#e9ecef',
-            plot_bgcolor='#e9ecef'
+            template="plotly_dark",
+            paper_bgcolor='#131720',
+            plot_bgcolor='#131720'
         )
         fig_trends.update_yaxes(title_text="<b>Active Fire Counts</b>", color="#ae2012", secondary_y=False)
         fig_trends.update_yaxes(title_text="<b>HCHO Column Density</b>", color="#005f73", secondary_y=True)
@@ -495,10 +692,10 @@ if selected_year == "2026 (Live Interactive Pipeline)":
         fig_corr.update_layout(
             height=400,
             margin=dict(l=20, r=20, t=50, b=20),
-            xaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(0,0,0,0.1)'),
-            paper_bgcolor='#e9ecef',
-            plot_bgcolor='#e9ecef'
+            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
+            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
+            paper_bgcolor='#131720',
+            plot_bgcolor='#131720'
         )
         st.plotly_chart(fig_corr, use_container_width=True)
 
