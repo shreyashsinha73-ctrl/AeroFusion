@@ -545,43 +545,34 @@ else:
     st.markdown(f"## 📅 Historical Observations — {selected_year}")
     st.markdown("---")
     
-    # 2x2 grid of columns
-    row1_col1, row1_col2 = st.columns(2)
-    row2_col1, row2_col2 = st.columns(2)
+    # HCHO Row: Full-width combined HCHO map (Baseline vs. Burning Season side-by-side in one image)
+    st.markdown("### 🧪 Tropospheric HCHO Plume Map (Baseline vs. Burning Season)")
+    st.caption(f"Comparison of HCHO column density (mol/m²) for Baseline (Jan-Mar) and Burning Season (Oct-Nov) in {selected_year}")
+    hcho_file = f"static_maps/{selected_year}_hcho_combined.png"
+    if os.path.exists(hcho_file):
+        st.image(hcho_file, use_container_width=True)
+    else:
+        st.info(f"HCHO comparison map for {selected_year} pending generation (expected {hcho_file})")
+        
+    st.markdown("---")
     
-    panels = [
-        {
-            "col": row1_col1,
-            "title": "🔥 Baseline Season - Fire Radiative Power (FRP)",
-            "caption": f"Baseline: Jan-Mar {selected_year} (Placeholder)",
-            "file": f"static_maps/{selected_year}_baseline_frp.png"
-        },
-        {
-            "col": row1_col2,
-            "title": "🧪 Baseline Season - Tropospheric HCHO Plume",
-            "caption": f"Baseline: Jan-Mar {selected_year} (Placeholder)",
-            "file": f"static_maps/{selected_year}_baseline_hcho.png"
-        },
-        {
-            "col": row2_col1,
-            "title": "🔥 Biomass Burning Season - Fire Radiative Power (FRP)",
-            "caption": f"Burning Season: Oct-Nov {selected_year} (Placeholder)",
-            "file": f"static_maps/{selected_year}_burning_frp.png"
-        },
-        {
-            "col": row2_col2,
-            "title": "🧪 Biomass Burning Season - Tropospheric HCHO Plume",
-            "caption": f"Burning Season: Oct-Nov {selected_year} (Placeholder)",
-            "file": f"static_maps/{selected_year}_burning_hcho.png"
-        }
-    ]
+    # FRP Row: Side-by-side baseline vs burning FRP maps
+    frp_col1, frp_col2 = st.columns(2)
     
-    for panel in panels:
-        with panel["col"]:
-            st.markdown(f"### {panel['title']}")
-            st.caption(panel["caption"])
-            file_path = panel["file"]
-            if os.path.exists(file_path):
-                st.image(file_path, use_container_width=True)
-            else:
-                st.info(f"Map for {selected_year} pending generation")
+    with frp_col1:
+        st.markdown("### 🔥 Baseline Season - Fire Radiative Power (FRP)")
+        st.caption(f"FRP distribution during Jan-Mar {selected_year}")
+        frp_base_file = f"static_maps/{selected_year}_frp_baseline.png"
+        if os.path.exists(frp_base_file):
+            st.image(frp_base_file, use_container_width=True)
+        else:
+            st.info(f"Baseline FRP map for {selected_year} pending generation (expected {frp_base_file})")
+            
+    with frp_col2:
+        st.markdown("### 🔥 Biomass Burning Season - Fire Radiative Power (FRP)")
+        st.caption(f"FRP distribution during Oct-Nov {selected_year}")
+        frp_burn_file = f"static_maps/{selected_year}_frp_burning.png"
+        if os.path.exists(frp_burn_file):
+            st.image(frp_burn_file, use_container_width=True)
+        else:
+            st.info(f"Burning Season FRP map for {selected_year} pending generation (expected {frp_burn_file})")
