@@ -536,7 +536,10 @@ if selected_year == "2026 (Live Interactive Pipeline)":
                 zoom=4,
                 style="carto-positron"
             ),
-            coloraxis_colorbar=dict(title="FRP (MW)")
+            coloraxis_colorbar=dict(title="FRP (MW)"),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            font=dict(color='#000000')
         )
         st.plotly_chart(fig_fire, use_container_width=True)
 
@@ -576,7 +579,10 @@ if selected_year == "2026 (Live Interactive Pipeline)":
                 zoom=4,
                 style="carto-positron"
             ),
-            coloraxis_colorbar=dict(title="molec/cm²")
+            coloraxis_colorbar=dict(title="molec/cm²"),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            font=dict(color='#000000')
         )
         st.plotly_chart(fig_hcho, use_container_width=True)
 
@@ -628,17 +634,18 @@ if selected_year == "2026 (Live Interactive Pipeline)":
             secondary_y=True,
         )
         fig_trends.update_layout(
-            title_text="Fires vs. HCHO Column Density (30-Day Trend)",
+            title=dict(text="Fires vs. HCHO Column Density (30-Day Trend)", font=dict(color='#000000')),
             height=400,
             margin=dict(l=20, r=20, t=50, b=20),
-            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            template="plotly_dark",
-            paper_bgcolor='#131720',
-            plot_bgcolor='#131720'
+            xaxis=dict(showgrid=True, gridcolor='#e0e0e0', tickfont=dict(color='#000000'), title_font=dict(color='#000000')),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color='#000000')),
+            template="plotly_white",
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            font=dict(color='#000000')
         )
-        fig_trends.update_yaxes(title_text="<b>Active Fire Counts</b>", color="#ae2012", secondary_y=False)
-        fig_trends.update_yaxes(title_text="<b>HCHO Column Density</b>", color="#005f73", secondary_y=True)
+        fig_trends.update_yaxes(title_text="<b>Active Fire Counts</b>", color="#000000", tickfont=dict(color='#000000'), secondary_y=False)
+        fig_trends.update_yaxes(title_text="<b>HCHO Column Density</b>", color="#000000", tickfont=dict(color='#000000'), secondary_y=True)
         st.plotly_chart(fig_trends, use_container_width=True)
 
     with col_trend_right:
@@ -690,12 +697,14 @@ if selected_year == "2026 (Live Interactive Pipeline)":
                 )
                 
         fig_corr.update_layout(
+            title=dict(font=dict(color='#000000')),
             height=400,
             margin=dict(l=20, r=20, t=50, b=20),
-            xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-            paper_bgcolor='#131720',
-            plot_bgcolor='#131720'
+            xaxis=dict(showgrid=True, gridcolor='#e0e0e0', tickfont=dict(color='#000000'), title_font=dict(color='#000000')),
+            yaxis=dict(showgrid=True, gridcolor='#e0e0e0', tickfont=dict(color='#000000'), title_font=dict(color='#000000')),
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            font=dict(color='#000000')
         )
         st.plotly_chart(fig_corr, use_container_width=True)
 

@@ -211,11 +211,11 @@ def generate_hcho_combined_map(year: int, data_path: str, states_gdf, output_dir
         ax.set_aspect('equal', adjustable='box')
         
         # Gridlines and styling
-        ax.grid(True, linestyle='--', alpha=0.2, color='gray')
-        ax.set_title(item["title"], fontsize=11, fontweight='bold', pad=10)
-        ax.set_xlabel("Longitude (°E)", fontsize=8)
-        ax.set_ylabel("Latitude (°N)", fontsize=8)
-        ax.tick_params(labelsize=8)
+        ax.grid(True, linestyle='--', color='#e0e0e0', alpha=1.0)
+        ax.set_title(item["title"], fontsize=11, fontweight='bold', pad=10, color='#000000')
+        ax.set_xlabel("Longitude (°E)", fontsize=8, color='#000000')
+        ax.set_ylabel("Latitude (°N)", fontsize=8, color='#000000')
+        ax.tick_params(labelsize=8, labelcolor='#000000')
         
         # Remove spines for cleaner map look
         for spine in ax.spines.values():
@@ -246,8 +246,8 @@ def generate_hcho_combined_map(year: int, data_path: str, states_gdf, output_dir
     if im_burn is not None:
         cbar_ax = fig.add_axes([0.93, 0.20, 0.015, 0.58])
         cbar = fig.colorbar(im_burn, cax=cbar_ax)
-        cbar.set_label("HCHO column density (mol/m²)", fontsize=9, fontweight='bold')
-        cbar.ax.tick_params(labelsize=8)
+        cbar.set_label("HCHO column density (mol/m²)", fontsize=9, fontweight='bold', color='#000000')
+        cbar.ax.tick_params(labelsize=8, labelcolor='#000000')
         
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"{year}_hcho_combined.png")
@@ -287,10 +287,10 @@ def generate_frp_single_map(year: int, season: str, data_path: str, states_gdf, 
     ax.set_aspect('equal', adjustable='box')
     
     # Gridlines and styling
-    ax.grid(True, linestyle='--', alpha=0.2, color='gray')
-    ax.set_xlabel("Longitude (°E)", fontsize=8)
-    ax.set_ylabel("Latitude (°N)", fontsize=8)
-    ax.tick_params(labelsize=8)
+    ax.grid(True, linestyle='--', color='#e0e0e0', alpha=1.0)
+    ax.set_xlabel("Longitude (°E)", fontsize=8, color='#000000')
+    ax.set_ylabel("Latitude (°N)", fontsize=8, color='#000000')
+    ax.tick_params(labelsize=8, labelcolor='#000000')
     
     # Remove spines for cleaner map look
     for spine in ax.spines.values():
@@ -322,13 +322,13 @@ def generate_frp_single_map(year: int, season: str, data_path: str, states_gdf, 
         
     # Title & annotations
     season_title = "Baseline Season (Jan-Mar)" if season.lower() == 'baseline' else "Burning Season (Oct-Nov)"
-    ax.set_title(f"Fire Intensity - India ({year} {season_title})", fontsize=12, fontweight='bold', pad=12)
+    ax.set_title(f"Fire Intensity - India ({year} {season_title})", fontsize=12, fontweight='bold', pad=12, color='#000000')
     ax.text(82.5, 5.0, "Source: MODIS/VIIRS via NASA FIRMS | Spatial Resolution: 0.1° grid", ha='center', fontsize=8, style='italic', color='#555555')
     
     # Add LogNorm colorbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.035, pad=0.04)
-    cbar.set_label("Total FRP per cell (MW, log scale)", fontsize=9, fontweight='bold')
-    cbar.ax.tick_params(labelsize=8)
+    cbar.set_label("Total FRP per cell (MW, log scale)", fontsize=9, fontweight='bold', color='#000000')
+    cbar.ax.tick_params(labelsize=8, labelcolor='#000000')
     
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"{year}_frp_{season.lower()}.png")
